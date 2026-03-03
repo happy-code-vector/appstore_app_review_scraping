@@ -1,0 +1,11 @@
+# App Store IDs to scrape
+# Separate by space, comma, or newline
+
+# Instagram
+389801252
+
+# YouTube
+284882215
+
+# Spotify
+324684580

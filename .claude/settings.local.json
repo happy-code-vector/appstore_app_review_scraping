@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install -r requirements.txt)",
+      "Bash(python main.py app_ids.txt --output both --limit 10)",
+      "Bash(python -c \":*)",
+      "Bash(python main.py app_ids.txt --output both --limit 10 --no-resume)",
+      "Bash(python -m venv venv)",
+      "Bash(source venv/Scripts/activate)",
+      "Bash(pip install app-store-scraper rich click pandas)",
+      "Bash(pip install selenium webdriver-manager)",
+      "Bash(pip install selenium webdriver-manager --quiet)",
+      "Bash(pip install playwright)",
+      "Bash(playwright install chromium)"
+    ]
+  }
+}

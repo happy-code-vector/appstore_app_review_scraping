@@ -15,6 +15,7 @@ def parse_app_ids(file_path: str) -> List[str]:
     """
     Parse app IDs from a text file.
     Supports space, comma, and newline separators.
+    Handles formats: "id1524421486" or "1524421486"
     """
     content = Path(file_path).read_text(encoding='utf-8')
 
@@ -26,10 +27,22 @@ def parse_app_ids(file_path: str) -> List[str]:
     # Split by common separators
     # Replace commas with spaces, then split by whitespace
     clean_content = clean_content.replace(',', ' ')
-    app_ids = clean_content.split()
+    raw_ids = clean_content.split()
 
-    # Filter valid app IDs (numeric strings)
-    valid_ids = [id.strip() for id in app_ids if id.strip().isdigit()]
+    valid_ids = []
+    for raw_id in raw_ids:
+        raw_id = raw_id.strip()
+        if not raw_id:
+            continue
+
+        # Handle "id123456" format - strip "id" prefix
+        if raw_id.lower().startswith('id'):
+            numeric_part = raw_id[2:]
+            if numeric_part.isdigit():
+                valid_ids.append(numeric_part)
+        # Handle plain numeric format
+        elif raw_id.isdigit():
+            valid_ids.append(raw_id)
 
     return valid_ids
 

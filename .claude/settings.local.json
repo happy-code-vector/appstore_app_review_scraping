@@ -11,7 +11,8 @@
       "Bash(pip install selenium webdriver-manager)",
       "Bash(pip install selenium webdriver-manager --quiet)",
       "Bash(pip install playwright)",
-      "Bash(playwright install chromium)"
+      "Bash(playwright install chromium)",
+      "Bash(python -c \"import sys, json; data = json.load\\(sys.stdin\\); print\\(f''Apps: {len\\(data\\)}''\\); [print\\(f''  {k}: {v[\"\"status\"\"]} \\({v[\"\"review_count\"\"]} reviews\\)''\\) for k, v in data.items\\(\\)]\")"
     ]
   }
 }

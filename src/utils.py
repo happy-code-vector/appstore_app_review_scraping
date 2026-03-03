@@ -66,11 +66,35 @@ def save_reviews_csv(reviews: List[Review], output_path: Path) -> None:
 
 
 def save_reviews_json(reviews: List[Review], output_path: Path) -> None:
-    """Save reviews to JSON file."""
+    """Save reviews to JSON file, grouped by app_id."""
     if not reviews:
         return
 
-    data = [review.to_dict() for review in reviews]
+    # Group reviews by app_id
+    apps_dict = {}
+    for review in reviews:
+        if review.app_id not in apps_dict:
+            apps_dict[review.app_id] = {
+                'app_id': review.app_id,
+                'app_name': review.app_name,
+                'reviews': []
+            }
+
+        # Create review item without app_id and app_name (they're in parent)
+        review_item = {
+            'rating': review.rating,
+            'title': review.title,
+            'text': review.text,
+            'author': review.author,
+            'date': review.date.isoformat() if review.date else None,
+            'helpful_count': review.helpful_count,
+            'app_version': review.app_version,
+            'review_id': review.review_id
+        }
+        apps_dict[review.app_id]['reviews'].append(review_item)
+
+    # Convert to list
+    data = list(apps_dict.values())
 
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)

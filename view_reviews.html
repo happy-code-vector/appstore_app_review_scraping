@@ -15,65 +15,96 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
-            padding: 20px;
             color: #e0e0e0;
+            display: flex;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* Left Sidebar */
+        .sidebar {
+            width: 320px;
+            min-width: 320px;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            flex-direction: column;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        h1 {
-            font-size: 2.5rem;
+        .sidebar-header h1 {
+            font-size: 1.3rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
-        .subtitle {
+        .sidebar-header .subtitle {
+            font-size: 0.8rem;
             color: #888;
-            font-size: 1rem;
         }
 
-        .stats {
+        .sidebar-stats {
             display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-top: 20px;
+            gap: 15px;
+            margin-top: 15px;
         }
 
-        .stat {
+        .sidebar-stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 10px;
             text-align: center;
+            flex: 1;
         }
 
-        .stat-value {
-            font-size: 2rem;
+        .sidebar-stat-value {
+            font-size: 1.2rem;
             font-weight: bold;
             color: #667eea;
         }
 
-        .stat-label {
-            font-size: 0.85rem;
+        .sidebar-stat-label {
+            font-size: 0.7rem;
             color: #888;
             text-transform: uppercase;
-            letter-spacing: 1px;
+        }
+
+        .search-box {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input::placeholder {
+            color: #666;
+        }
+
+        .search-box input:focus {
+            border-color: #667eea;
         }
 
         .file-upload {
-            text-align: center;
-            margin-bottom: 30px;
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .file-upload input[type="file"] {
@@ -81,83 +112,170 @@
         }
 
         .file-upload label {
-            display: inline-block;
-            padding: 15px 30px;
+            display: block;
+            padding: 10px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 50px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .file-upload label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .app-card {
+        .app-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .app-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .app-list::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            margin-bottom: 30px;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .app-header {
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .app-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .app-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .app-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .app-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .app-item-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .app-item-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .app-info h2 {
-            font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 5px;
-        }
-
-        .app-id {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: #888;
-            font-family: monospace;
         }
 
-        .review-count {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 10px 20px;
-            border-radius: 50px;
+        .app-item-count {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            padding: 2px 8px;
+            border-radius: 10px;
             font-weight: 600;
+        }
+
+        .app-item.active .app-item-count {
+            background: rgba(102, 126, 234, 0.3);
+            color: #667eea;
+        }
+
+        /* Right Content Panel */
+        .content-panel {
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .content-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .content-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        .app-detail-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .app-detail-header h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .app-detail-meta {
+            display: flex;
+            gap: 20px;
+            color: #888;
             font-size: 0.9rem;
         }
 
-        .reviews-list {
-            padding: 20px;
+        .app-detail-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .review-item {
-            background: rgba(255, 255, 255, 0.03);
+        .review-badge {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .reviews-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .review-card {
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
+            padding: 25px;
             border-left: 4px solid;
+            backdrop-filter: blur(10px);
             transition: transform 0.2s;
         }
 
-        .review-item:hover {
+        .review-card:hover {
             transform: translateX(5px);
         }
 
-        .review-item.rating-1 {
+        .review-card.rating-1 {
             border-left-color: #ff4757;
         }
 
-        .review-item.rating-2 {
+        .review-card.rating-2 {
             border-left-color: #ffa502;
         }
 
@@ -204,35 +322,29 @@
         }
 
         .review-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 600;
             color: #fff;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .review-text {
             color: #ccc;
-            line-height: 1.7;
+            line-height: 1.8;
             white-space: pre-wrap;
             word-wrap: break-word;
         }
 
-        .review-text .more-link {
-            color: #667eea;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
         .developer-response {
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 20px;
+            padding: 15px 20px;
             background: rgba(102, 126, 234, 0.1);
             border-radius: 10px;
             border-left: 3px solid #667eea;
         }
 
         .developer-response-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #667eea;
             font-weight: 600;
             margin-bottom: 8px;
@@ -246,6 +358,26 @@
             line-height: 1.6;
         }
 
+        .no-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+            text-align: center;
+        }
+
+        .no-selection-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .no-selection-text {
+            font-size: 1.2rem;
+        }
+
         .no-reviews {
             text-align: center;
             padding: 60px 20px;
@@ -257,130 +389,89 @@
             margin-bottom: 20px;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #888;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .toggle-collapsed {
-            cursor: pointer;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            color: #888;
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: background 0.2s;
-        }
-
-        .toggle-collapsed:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .collapsed .reviews-list {
-            display: none;
-        }
-
-        .collapse-icon {
-            transition: transform 0.3s;
-        }
-
-        .collapsed .collapse-icon {
-            transform: rotate(-90deg);
-        }
-
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             body {
-                padding: 10px;
+                flex-direction: column;
             }
 
-            h1 {
-                font-size: 1.8rem;
+            .sidebar {
+                width: 100%;
+                min-width: unset;
+                height: auto;
+                max-height: 40vh;
+                position: relative;
             }
 
-            .stats {
-                gap: 20px;
+            .app-list {
+                max-height: 200px;
             }
 
-            .stat-value {
+            .content-panel {
+                height: auto;
+                min-height: 60vh;
+                padding: 20px;
+            }
+
+            .app-detail-header h2 {
                 font-size: 1.5rem;
-            }
-
-            .app-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .review-header {
-                flex-direction: column;
-            }
-
-            .review-meta {
-                text-align: left;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
             <h1>App Store Reviews</h1>
-            <p class="subtitle">Negative Reviews Viewer (1-2 Stars)</p>
-            <div class="stats" id="stats">
-                <div class="stat">
-                    <div class="stat-value" id="total-apps">0</div>
-                    <div class="stat-label">Apps</div>
+            <p class="subtitle">Negative Reviews (1-2 Stars)</p>
+            <div class="sidebar-stats">
+                <div class="sidebar-stat">
+                    <div class="sidebar-stat-value" id="total-apps">0</div>
+                    <div class="sidebar-stat-label">Apps</div>
                 </div>
-                <div class="stat">
-                    <div class="stat-value" id="total-reviews">0</div>
-                    <div class="stat-label">Reviews</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="avg-rating">0</div>
-                    <div class="stat-label">Avg Rating</div>
+                <div class="sidebar-stat">
+                    <div class="sidebar-stat-value" id="total-reviews">0</div>
+                    <div class="sidebar-stat-label">Reviews</div>
                 </div>
             </div>
-        </header>
+        </div>
 
         <div class="file-upload">
             <input type="file" id="file-input" accept=".json">
-            <label for="file-input">📂 Load JSON File</label>
+            <label for="file-input">Load JSON File</label>
         </div>
 
-        <div id="content">
-            <div class="no-reviews">
-                <div class="no-reviews-icon">📋</div>
-                <p>Load a JSON file to view reviews</p>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search apps...">
+        </div>
+
+        <div class="app-list" id="app-list">
+            <!-- App items will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Right Content Panel -->
+    <div class="content-panel">
+        <div id="content-area">
+            <div class="no-selection">
+                <div class="no-selection-icon">📱</div>
+                <p class="no-selection-text">Select an app from the sidebar to view reviews</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Auto-load the most recent JSON file
+        let appsData = [];
+        let selectedAppId = null;
+
+        // Auto-load the default JSON file
         async function loadDefaultFile() {
             try {
-                // Try to load the default JSON file
                 const response = await fetch('reviews_20260303_191329.json');
                 if (response.ok) {
                     const data = await response.json();
-                    displayReviews(data);
+                    processData(data);
                 }
             } catch (e) {
                 console.log('No default file found');
@@ -395,7 +486,7 @@
                 reader.onload = function(e) {
                     try {
                         const data = JSON.parse(e.target.result);
-                        displayReviews(data);
+                        processData(data);
                     } catch (err) {
                         alert('Invalid JSON file');
                     }
@@ -404,61 +495,102 @@
             }
         });
 
-        function displayReviews(data) {
-            const content = document.getElementById('content');
+        // Search handler
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            renderAppList(query);
+        });
 
-            // Calculate stats
-            const totalApps = data.length;
-            const totalReviews = data.reduce((sum, app) => sum + app.reviews.length, 0);
-            const avgRating = totalReviews > 0
-                ? (data.reduce((sum, app) =>
-                    sum + app.reviews.reduce((s, r) => s + r.rating, 0), 0) / totalReviews).toFixed(1)
-                : 0;
+        function processData(data) {
+            // Sort apps by review count (descending)
+            appsData = data.sort((a, b) => b.reviews.length - a.reviews.length);
+
+            // Update stats
+            const totalApps = appsData.length;
+            const totalReviews = appsData.reduce((sum, app) => sum + app.reviews.length, 0);
 
             document.getElementById('total-apps').textContent = totalApps;
             document.getElementById('total-reviews').textContent = totalReviews;
-            document.getElementById('avg-rating').textContent = avgRating;
 
-            if (totalReviews === 0) {
-                content.innerHTML = `
+            // Render app list
+            renderAppList();
+
+            // Auto-select first app if available
+            if (appsData.length > 0 && appsData[0].reviews.length > 0) {
+                selectApp(appsData[0].app_id);
+            }
+        }
+
+        function renderAppList(searchQuery = '') {
+            const appList = document.getElementById('app-list');
+            const filteredApps = searchQuery
+                ? appsData.filter(app => app.app_name.toLowerCase().includes(searchQuery))
+                : appsData;
+
+            if (filteredApps.length === 0) {
+                appList.innerHTML = `
                     <div class="no-reviews">
-                        <div class="no-reviews-icon">📭</div>
-                        <p>No reviews found in this file</p>
+                        <p>No apps found</p>
                     </div>
                 `;
                 return;
             }
 
-            // Sort apps by review count (descending)
-            data.sort((a, b) => b.reviews.length - a.reviews.length);
+            appList.innerHTML = filteredApps.map(app => `
+                <div class="app-item ${selectedAppId === app.app_id ? 'active' : ''}"
+                     onclick="selectApp('${app.app_id}')">
+                    <div class="app-item-name">${escapeHtml(app.app_name)}</div>
+                    <div class="app-item-meta">
+                        <span>ID: ${app.app_id}</span>
+                        <span class="app-item-count">${app.reviews.length} reviews</span>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-            let html = '';
-            data.forEach((app, index) => {
-                if (app.reviews.length === 0) return;
+        function selectApp(appId) {
+            selectedAppId = appId;
+            const app = appsData.find(a => a.app_id === appId);
 
-                html += `
-                    <div class="app-card" id="app-${app.app_id}">
-                        <div class="app-header">
-                            <div class="app-info">
-                                <h2>${escapeHtml(app.app_name)}</h2>
-                                <span class="app-id">App ID: ${app.app_id}</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <span class="review-count">${app.reviews.length} review${app.reviews.length !== 1 ? 's' : ''}</span>
-                                <div class="toggle-collapsed" onclick="toggleApp('${app.app_id}')">
-                                    <span class="collapse-icon">▼</span>
-                                    <span>Toggle</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="reviews-list">
-                            ${app.reviews.map(review => renderReview(review)).join('')}
-                        </div>
+            if (!app) return;
+
+            // Update active state in sidebar
+            renderAppList(document.getElementById('search-input').value);
+
+            // Render app reviews
+            renderAppReviews(app);
+        }
+
+        function renderAppReviews(app) {
+            const contentArea = document.getElementById('content-area');
+
+            if (!app || app.reviews.length === 0) {
+                contentArea.innerHTML = `
+                    <div class="no-reviews">
+                        <div class="no-reviews-icon">📭</div>
+                        <p>No negative reviews found for this app</p>
                     </div>
                 `;
-            });
+                return;
+            }
 
-            content.innerHTML = html;
+            const avgRating = app.reviews.length > 0
+                ? (app.reviews.reduce((sum, r) => sum + r.rating, 0) / app.reviews.length).toFixed(1)
+                : 0;
+
+            contentArea.innerHTML = `
+                <div class="app-detail-header">
+                    <h2>${escapeHtml(app.app_name)}</h2>
+                    <div class="app-detail-meta">
+                        <span>App ID: ${app.app_id}</span>
+                        <span class="review-badge">${app.reviews.length} negative reviews</span>
+                        <span>Avg: ${avgRating} stars</span>
+                    </div>
+                </div>
+                <div class="reviews-container">
+                    ${app.reviews.map(review => renderReview(review)).join('')}
+                </div>
+            `;
         }
 
         function renderReview(review) {
@@ -469,30 +601,23 @@
                 day: 'numeric'
             }) : 'Unknown date';
 
-            // Process review text
             let reviewText = escapeHtml(review.text || '');
-
-            // Split by "more" and "Developer Response" if present
-            const parts = reviewText.split(/more\s*(?=\n|$)/i);
-            let mainText = parts[0].trim();
-            let developerResponse = null;
 
             // Look for developer response
             const devResponseMatch = reviewText.match(/Developer Response\s*([\s\S]*?)(?:more\s*$|$)/i);
+            let mainText = reviewText;
+            let developerResponse = null;
+
             if (devResponseMatch) {
                 developerResponse = devResponseMatch[1].trim();
-                mainText = parts[0].replace(/Developer Response[\s\S]*/i, '').trim();
+                mainText = reviewText.replace(/Developer Response[\s\S]*/i, '').trim();
             }
 
-            // Remove author name from beginning if present
-            const lines = mainText.split('\n');
-            if (lines.length > 1 && lines[0].length < 50 && !lines[0].includes('.')) {
-                // First line might be author name, skip it
-                mainText = lines.slice(1).join('\n').trim();
-            }
+            // Remove trailing "more" if present
+            mainText = mainText.replace(/\s*more\s*$/i, '').trim();
 
             return `
-                <div class="review-item rating-${review.rating}">
+                <div class="review-card rating-${review.rating}">
                     <div class="review-header">
                         <div class="rating">${stars}</div>
                         <div class="review-meta">
@@ -529,11 +654,6 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        function toggleApp(appId) {
-            const card = document.getElementById(`app-${appId}`);
-            card.classList.toggle('collapsed');
         }
 
         // Load default file on page load

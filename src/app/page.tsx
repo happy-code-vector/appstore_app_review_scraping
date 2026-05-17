@@ -113,19 +113,34 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header / Input */}
-      <header className="border-b p-4 space-y-3 bg-background">
+    <div className="h-screen flex flex-col bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card/60 backdrop-blur-sm px-6 py-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold">App Store Review Scraper</h1>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-primary">
+                <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                <path d="M8 5V11M5 7L8 5L11 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-base font-semibold tracking-tight">App Store Review Scraper</h1>
+              <p className="text-[11px] text-muted-foreground">Scrape and filter iOS reviews by rating</p>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <RatingFilter value={ratingFilter} onChange={setRatingFilter} disabled={scraping} />
             {scraping ? (
-              <Button variant="destructive" size="sm" onClick={handleStop}>
+              <Button variant="destructive" size="sm" onClick={handleStop} className="gap-2">
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                 Stop
               </Button>
             ) : (
-              <Button size="sm" onClick={handleScrape}>
+              <Button size="sm" onClick={handleScrape} className="gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                </svg>
                 Scrape
               </Button>
             )}
@@ -137,10 +152,17 @@ export default function Home() {
           onFileLoad={handleFileLoad}
           disabled={scraping}
         />
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && (
+          <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>
+            </svg>
+            {error}
+          </div>
+        )}
       </header>
 
-      {/* Body: Sidebar + Feed */}
+      {/* Body */}
       <div className="flex flex-1 min-h-0">
         <Sidebar
           apps={apps}

@@ -1,5 +1,7 @@
 import { Review } from "@/lib/types";
 import { ReviewCard } from "./review-card";
+import { downloadAsCSV, downloadAsJSON } from "@/lib/download";
+import { Button } from "@/components/ui/button";
 
 interface ReviewFeedProps {
   reviews: Review[];
@@ -7,6 +9,8 @@ interface ReviewFeedProps {
 }
 
 export function ReviewFeed({ reviews, totalScraped }: ReviewFeedProps) {
+  const timestamp = new Date().toISOString().slice(0, 10);
+
   if (reviews.length === 0 && totalScraped === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
@@ -25,10 +29,36 @@ export function ReviewFeed({ reviews, totalScraped }: ReviewFeedProps) {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="px-6 py-3 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+      <div className="px-6 py-3 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
           Showing <span className="text-foreground font-medium">{reviews.length}</span> review{reviews.length !== 1 ? "s" : ""}
         </p>
+        {reviews.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => downloadAsCSV(reviews, `reviews_${timestamp}.csv`)}
+              className="h-7 text-[11px] gap-1.5 text-muted-foreground hover:text-foreground"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              CSV
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => downloadAsJSON(reviews, `reviews_${timestamp}.json`)}
+              className="h-7 text-[11px] gap-1.5 text-muted-foreground hover:text-foreground"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              JSON
+            </Button>
+          </div>
+        )}
       </div>
       <div className="p-6 space-y-3">
         {reviews.map((review, i) => (

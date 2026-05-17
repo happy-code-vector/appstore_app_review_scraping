@@ -34,6 +34,29 @@ export async function fetchAppInfo(appId: string): Promise<AppInfo | null> {
   }
 }
 
+function parseEntries(entries: RssEntry[], appId: string, appName: string, ratings: number[], maxReviews: number, reviews: Review[]) {
+  for (const entry of entries) {
+    if (reviews.length >= maxReviews) break;
+    if (entry["im:name"]) continue;
+
+    const rating = parseInt(entry["im:rating"]?.label ?? "0", 10);
+    if (isNaN(rating) || !ratings.includes(rating)) continue;
+
+    reviews.push({
+      appId,
+      appName,
+      reviewId: entry.id?.label ?? "",
+      rating,
+      title: (entry.title?.label ?? "").slice(0, 200),
+      text: (entry.content?.label ?? "").slice(0, 5000),
+      author: entry.author?.name?.label ?? "",
+      date: entry.updated?.label ?? new Date().toISOString(),
+      helpfulCount: parseInt(entry["im:voteCount"]?.label ?? "0", 10),
+      appVersion: entry["im:version"]?.label ?? "",
+    });
+  }
+}
+
 export async function fetchReviews(
   appId: string,
   ratings: number[],
@@ -42,40 +65,33 @@ export async function fetchReviews(
   const appInfo = await fetchAppInfo(appId);
   if (!appInfo) return null;
 
-  try {
-    const res = await fetch(`${RSS_REVIEWS}${appId}/sortBy=mostRecent/json`, {
-      next: { revalidate: 0 },
-    });
-    if (!res.ok) return { appInfo, reviews: [] };
+  const reviews: Review[] = [];
+  let page = 1;
+  const maxPages = 10;
 
-    const data = await res.json();
-    const entries: RssEntry[] = data?.feed?.entry ?? [];
+  while (reviews.length < maxReviews && page <= maxPages) {
+    try {
+      const url = `${RSS_REVIEWS}${appId}/sortBy=mostRecent/page=${page}/json`;
+      const res = await fetch(url, { next: { revalidate: 0 } });
 
-    const reviews: Review[] = [];
-    for (const entry of entries) {
-      if (reviews.length >= maxReviews) break;
-      // Skip app metadata entry
-      if (entry["im:name"]) continue;
+      if (!res.ok) break;
 
-      const rating = parseInt(entry["im:rating"]?.label ?? "0", 10);
-      if (isNaN(rating) || !ratings.includes(rating)) continue;
+      const data = await res.json();
+      const entries: RssEntry[] = data?.feed?.entry ?? [];
 
-      reviews.push({
-        appId,
-        appName: appInfo.name,
-        reviewId: entry.id?.label ?? "",
-        rating,
-        title: (entry.title?.label ?? "").slice(0, 200),
-        text: (entry.content?.label ?? "").slice(0, 5000),
-        author: entry.author?.name?.label ?? "",
-        date: entry.updated?.label ?? new Date().toISOString(),
-        helpfulCount: parseInt(entry["im:voteCount"]?.label ?? "0", 10),
-        appVersion: entry["im:version"]?.label ?? "",
-      });
+      if (entries.length === 0) break;
+
+      const before = reviews.length;
+      parseEntries(entries, appId, appInfo.name, ratings, maxReviews, reviews);
+
+      // If no new reviews were added from this page, or fewer raw entries than expected, stop
+      if (reviews.length === before || entries.length < 2) break;
+
+      page++;
+    } catch {
+      break;
     }
-
-    return { appInfo, reviews };
-  } catch {
-    return { appInfo, reviews: [] };
   }
+
+  return { appInfo, reviews };
 }

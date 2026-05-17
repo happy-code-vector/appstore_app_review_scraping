@@ -1,0 +1,132 @@
+<h2>App Review Dashboard — Layout Options</h2>
+<p class="subtitle">Which layout feels right for viewing scraped reviews?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Full-Width Table</h3>
+      <p>Single scrollable table with all review data in columns. Compact, dense, spreadsheet-like.</p>
+      <div class="mockup">
+        <div class="mockup-header">Preview: Full-Width Table</div>
+        <div class="mockup-body" style="padding: 8px;">
+          <div class="mock-nav" style="margin-bottom: 8px;">App Store Review Scraper | [App IDs Input] [Rating Filter] [Scrape]</div>
+          <div style="border: 1px solid #ccc; border-radius: 4px; overflow: hidden;">
+            <div style="display: grid; grid-template-columns: 40px 1fr 80px 60px 1fr 100px 80px; background: #f0f0f0; font-size: 11px; font-weight: bold; padding: 6px 8px; border-bottom: 1px solid #ccc;">
+              <div>#</div><div>App Name</div><div>Rating</div><div>Date</div><div>Review</div><div>Author</div><div>Version</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 80px 60px 1fr 100px 80px; font-size: 11px; padding: 6px 8px; border-bottom: 1px solid #eee;">
+              <div>1</div><div>Peptide AI</div><div style="color: #e53e3e;">★☆☆☆☆</div><div>03/12</div><div>SCAMMMM!!! THIS IS COMPLETE AI SLOP...</div><div>cherries655</div><div>1.2.0</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 80px 60px 1fr 100px 80px; font-size: 11px; padding: 6px 8px; border-bottom: 1px solid #eee;">
+              <div>2</div><div>Pep AI</div><div style="color: #e53e3e;">★★☆☆☆</div><div>03/10</div><div>This app is overly difficult to navigate...</div><div>Dominik S.</div><div>2.0.1</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 80px 60px 1fr 100px 80px; font-size: 11px; padding: 6px 8px; border-bottom: 1px solid #eee;">
+              <div>3</div><div>Pep AI</div><div style="color: #e53e3e;">★☆☆☆☆</div><div>03/08</div><div>Have to pay. You can't use anything...</div><div>Llianaa</div><div>2.0.1</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 80px 60px 1fr 100px 80px; font-size: 11px; padding: 6px 8px; color: #999;">
+              <div>4</div><div>Peppedia</div><div style="color: #e53e3e;">★☆☆☆☆</div><div>03/05</div><div>Terrible experience. Crashes on launch...</div><div>john_d</div><div>1.0.3</div>
+            </div>
+          </div>
+          <div style="text-align: center; font-size: 11px; color: #888; margin-top: 6px;">Showing 1-4 of 127 reviews</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Grouped by App (Accordion)</h3>
+      <p>Reviews grouped under each app name. Expand an app to see its reviews as cards. Easier to compare apps.</p>
+      <div class="mockup">
+        <div class="mockup-header">Preview: Grouped by App</div>
+        <div class="mockup-body" style="padding: 8px;">
+          <div class="mock-nav" style="margin-bottom: 8px;">App Store Review Scraper | [App IDs Input] [Rating Filter] [Scrape]</div>
+          <div style="border: 1px solid #ddd; border-radius: 6px; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #f7f7f7; border-radius: 6px; font-size: 12px; font-weight: bold;">
+              <span>Peptide AI: Stack Intelligence</span>
+              <span style="color: #e53e3e;">14 reviews (1-2★)</span>
+            </div>
+            <div style="padding: 8px 12px; border-top: 1px solid #eee;">
+              <div style="background: #fefefe; border: 1px solid #eee; border-radius: 4px; padding: 8px; margin-bottom: 4px; font-size: 11px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><strong style="color: #e53e3e;">★☆☆☆☆</strong><span style="color: #999;">cherries655 · 03/12/26</span></div>
+                <div style="font-weight: bold;">SCAMMMM!!!</div>
+                <div style="color: #555; margin-top: 2px;">THIS IS COMPLETE AI SLOP IT IS SO TERRIBLE!! THE UI IS...</div>
+              </div>
+              <div style="background: #fefefe; border: 1px solid #eee; border-radius: 4px; padding: 8px; font-size: 11px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><strong style="color: #e53e3e;">★☆☆☆☆</strong><span style="color: #999;">user882 · 03/10/26</span></div>
+                <div style="font-weight: bold;">Waste of money</div>
+                <div style="color: #555; margin-top: 2px;">Paid for yearly sub and the app doesn't work...</div>
+              </div>
+            </div>
+          </div>
+          <div style="border: 1px solid #ddd; border-radius: 6px; opacity: 0.7;">
+            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #f7f7f7; border-radius: 6px; font-size: 12px; font-weight: bold;">
+              <span>Pep AI - Peptide Tracker</span>
+              <span style="color: #e53e3e;">23 reviews (1-2★)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Split: Summary Sidebar + Review Feed</h3>
+      <p>Left sidebar shows per-app stats (rating distribution, count). Right side is a scrollable review feed with filters.</p>
+      <div class="mockup">
+        <div class="mockup-header">Preview: Split View</div>
+        <div class="mockup-body" style="padding: 0;">
+          <div style="display: flex; height: 220px;">
+            <div style="width: 220px; border-right: 1px solid #ddd; padding: 10px; background: #fafafa; font-size: 11px;">
+              <div style="font-weight: bold; margin-bottom: 8px;">Apps Summary</div>
+              <div style="background: white; border: 1px solid #eee; border-radius: 4px; padding: 6px; margin-bottom: 4px;">
+                <div style="font-weight: bold;">Peptide AI</div>
+                <div style="color: #e53e3e;">14 reviews</div>
+                <div style="display: flex; gap: 2px; margin-top: 2px;">
+                  <div style="background: #e53e3e; height: 8px; width: 60%; border-radius: 2px;"></div>
+                </div>
+                <div style="font-size: 10px; color: #888;">85% · 1★</div>
+              </div>
+              <div style="background: white; border: 1px solid #eee; border-radius: 4px; padding: 6px; margin-bottom: 4px;">
+                <div style="font-weight: bold;">Pep AI</div>
+                <div style="color: #e53e3e;">23 reviews</div>
+                <div style="display: flex; gap: 2px; margin-top: 2px;">
+                  <div style="background: #dd6b20; height: 8px; width: 40%; border-radius: 2px;"></div>
+                  <div style="background: #e53e3e; height: 8px; width: 30%; border-radius: 2px;"></div>
+                </div>
+                <div style="font-size: 10px; color: #888;">40% · 2★ | 30% · 1★</div>
+              </div>
+              <div style="background: white; border: 1px solid #eee; border-radius: 4px; padding: 6px;">
+                <div style="font-weight: bold;">Peppedia</div>
+                <div style="color: #e53e3e;">8 reviews</div>
+              </div>
+            </div>
+            <div style="flex: 1; padding: 10px; overflow-y: auto; font-size: 11px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: bold;">127 reviews</span>
+                <div style="display: flex; gap: 4px;">
+                  <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-size: 10px;">All Apps</span>
+                  <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-size: 10px;">1★ Only</span>
+                </div>
+              </div>
+              <div style="border: 1px solid #eee; border-radius: 4px; padding: 8px; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between;"><strong style="color: #e53e3e;">★☆☆☆☆</strong><span style="color: #999;">cherries655 · Peptide AI · 03/12</span></div>
+                <div style="font-weight: bold; margin-top: 4px;">SCAMMMM!!!</div>
+                <div style="color: #555; margin-top: 2px;">THIS IS COMPLETE AI SLOP IT IS SO TERRIBLE!!...</div>
+              </div>
+              <div style="border: 1px solid #eee; border-radius: 4px; padding: 8px; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between;"><strong style="color: #dd6b20;">★★☆☆☆</strong><span style="color: #999;">Dominik S. · Pep AI · 03/10</span></div>
+                <div style="font-weight: bold; margin-top: 4px;">Nah</div>
+                <div style="color: #555; margin-top: 2px;">This app is overly difficult to navigate...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

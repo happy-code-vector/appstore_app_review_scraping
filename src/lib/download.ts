@@ -1,4 +1,4 @@
-import { Review } from "./types";
+import { Review, AcquisitionApp } from "./types";
 
 export function downloadAsCSV(reviews: Review[], filename: string) {
   const headers = ["app_id", "app_name", "rating", "title", "text", "author", "date", "helpful_count", "app_version", "review_id"];
@@ -43,4 +43,31 @@ function downloadBlob(content: string, filename: string, type: string) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export function downloadAcquisitionCSV(apps: AcquisitionApp[], filename: string) {
+  const headers = [
+    "app_id", "name", "developer", "category", "price", "formatted_price",
+    "rating_count", "avg_rating", "last_updated", "days_since_update",
+    "seller_url", "app_store_url", "status", "notes",
+  ];
+  const escape = (val: string) => `"${val.replace(/"/g, '""')}"`;
+
+  const rows = apps.map((a) =>
+    [
+      a.appId, escape(a.name), escape(a.developer), escape(a.category),
+      a.price, escape(a.formattedPrice), a.ratingCount,
+      a.averageRating.toFixed(2), a.lastUpdated, a.daysSinceUpdate,
+      escape(a.sellerUrl), escape(a.trackViewUrl), a.outreachStatus,
+      escape(a.notes ?? ""),
+    ].join(",")
+  );
+
+  const csv = [headers.join(","), ...rows].join("\n");
+  downloadBlob(csv, filename, "text/csv");
+}
+
+export function downloadAcquisitionJSON(apps: AcquisitionApp[], filename: string) {
+  const json = JSON.stringify(apps, null, 2);
+  downloadBlob(json, filename, "application/json");
 }

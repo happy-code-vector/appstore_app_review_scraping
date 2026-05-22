@@ -6,10 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   AcquisitionApp,
   DiscoverFilters,
+  DiscoverMode,
   OutreachStatus,
   OUTREACH_STATUSES,
   DEFAULT_FILTERS,
   SUGGESTED_KEYWORDS,
+  DISCOVER_MODES,
+  APP_STORE_CATEGORIES,
 } from "@/lib/types";
 import { OutreachTemplate, getTemplates, getFullEmail } from "@/lib/outreach-templates";
 import { downloadAcquisitionCSV, downloadAcquisitionJSON } from "@/lib/download";
@@ -64,6 +67,9 @@ function StatusBadge({ status }: { status: OutreachStatus }) {
 export function AcquireTab() {
   const [keywords, setKeywords] = useState("");
   const [filters, setFilters] = useState<DiscoverFilters>(DEFAULT_FILTERS);
+  const [mode, setMode] = useState<DiscoverMode>("abandoned");
+  const [searchType, setSearchType] = useState<"keywords" | "categories">("keywords");
+  const [selectedCategories, setSelectedCategories] = useState<Set<number>>(new Set());
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<AcquisitionApp[]>([]);
   const [pipeline, setPipeline] = useState<AcquisitionApp[]>([]);
@@ -86,26 +92,40 @@ export function AcquireTab() {
   // ─── Actions ─────────────────────────────────────────────────
 
   const handleSearch = useCallback(async () => {
-    const kws = keywords
-      .split(/[\n,]+/)
-      .map((k) => k.trim())
-      .filter(Boolean);
-    if (!kws.length) {
-      setError("Enter at least one keyword.");
-      return;
-    }
-
     setError(null);
     setSearching(true);
     setResults([]);
     setSelectedApp(null);
     setView("search");
 
+    const body: Record<string, unknown> = { filters, mode };
+
+    if (searchType === "keywords") {
+      const kws = keywords
+        .split(/[\n,]+/)
+        .map((k) => k.trim())
+        .filter(Boolean);
+      if (!kws.length) {
+        setError("Enter at least one keyword.");
+        setSearching(false);
+        return;
+      }
+      body.keywords = kws;
+    } else {
+      const catIds = Array.from(selectedCategories);
+      if (!catIds.length) {
+        setError("Select at least one category.");
+        setSearching(false);
+        return;
+      }
+      body.categoryIds = catIds;
+    }
+
     try {
       const res = await fetch("/api/discover", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keywords: kws, filters }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         setError(`Search failed: ${res.statusText}`);
@@ -114,14 +134,14 @@ export function AcquireTab() {
       const data = await res.json();
       setResults(data.apps ?? []);
       if (!data.apps?.length) {
-        setError("No abandoned apps found with these keywords and filters. Try broader keywords.");
+        setError("No apps found matching your criteria. Try broader filters.");
       }
     } catch (e) {
       setError(`Search error: ${(e as Error).message}`);
     } finally {
       setSearching(false);
     }
-  }, [keywords, filters]);
+  }, [keywords, filters, mode, searchType, selectedCategories]);
 
   const saveToPipeline = (app: AcquisitionApp) => {
     if (pipeline.some((a) => a.appId === app.appId)) return;
@@ -168,6 +188,15 @@ export function AcquireTab() {
     const saved = pipeline.find((a) => a.appId === app.appId);
     setSelectedApp(saved ?? app);
     setView("detail");
+  };
+
+  const toggleCategory = (id: number) => {
+    setSelectedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const addSuggested = (kw: string) => {
@@ -221,7 +250,7 @@ export function AcquireTab() {
             <div>
               <h1 className="text-base font-semibold tracking-tight">App Acquisition Finder</h1>
               <p className="text-[11px] text-muted-foreground">
-                Find abandoned apps with 50K+ downloads to acquire and revive
+                Find apps to acquire — abandoned, new, popular, or high-rated
               </p>
             </div>
           </div>
@@ -242,78 +271,149 @@ export function AcquireTab() {
           </div>
         </div>
 
-        {/* Keywords input */}
-        <div className="flex gap-3">
-          <Textarea
-            placeholder="Enter keywords (one per line or comma-separated):&#10;calculator&#10;weather&#10;todo list"
-            value={keywords}
-            onChange={(e) => setKeywords(e.target.value)}
-            disabled={searching}
-            rows={3}
-            className="font-mono text-sm resize-none bg-input/50 border-border focus:border-primary/50 flex-1"
-          />
-          <div className="flex flex-col gap-2 shrink-0 w-48">
-            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-              Min Ratings
-              <input
-                type="number"
-                value={filters.minRatingCount}
-                onChange={(e) => setFilters((f) => ({ ...f, minRatingCount: Number(e.target.value) }))}
-                disabled={searching}
-                className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
-              />
-            </label>
-            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-              Min Days Since Update
-              <input
-                type="number"
-                value={filters.minDaysSinceUpdate}
-                onChange={(e) => setFilters((f) => ({ ...f, minDaysSinceUpdate: Number(e.target.value) }))}
-                disabled={searching}
-                className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
-              />
-            </label>
-          </div>
-          <div className="flex flex-col gap-2 shrink-0 w-48">
-            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-              Max Price ($)
-              <input
-                type="number"
-                step="0.99"
-                value={filters.maxPrice}
-                onChange={(e) => setFilters((f) => ({ ...f, maxPrice: Number(e.target.value) }))}
-                disabled={searching}
-                className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
-              />
-            </label>
-            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-              Min Avg Rating
-              <input
-                type="number"
-                step="0.1"
-                value={filters.minAverageRating}
-                onChange={(e) => setFilters((f) => ({ ...f, minAverageRating: Number(e.target.value) }))}
-                disabled={searching}
-                className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
-              />
-            </label>
-          </div>
-        </div>
-
-        {/* Suggested keywords */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] text-muted-foreground shrink-0">Suggested:</span>
-          {SUGGESTED_KEYWORDS.slice(0, 12).map((kw) => (
+        {/* Mode selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider shrink-0">Find:</span>
+          {DISCOVER_MODES.map((m) => (
             <button
-              key={kw}
-              onClick={() => addSuggested(kw)}
-              disabled={searching}
-              className="text-[11px] px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors disabled:opacity-50"
+              key={m.value}
+              onClick={() => setMode(m.value)}
+              className={`text-[11px] px-3 py-1.5 rounded-lg border transition-colors ${
+                mode === m.value
+                  ? "border-primary/40 bg-primary/10 text-foreground font-medium"
+                  : "border-border text-muted-foreground hover:border-primary/20 hover:bg-muted"
+              }`}
             >
-              {kw}
+              {m.label}
             </button>
           ))}
         </div>
+
+        {/* Search type toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider shrink-0">By:</span>
+          <button
+            onClick={() => setSearchType("keywords")}
+            className={`text-[11px] px-3 py-1.5 rounded-lg border transition-colors ${
+              searchType === "keywords"
+                ? "border-primary/40 bg-primary/10 text-foreground font-medium"
+                : "border-border text-muted-foreground hover:border-primary/20 hover:bg-muted"
+            }`}
+          >
+            Keywords
+          </button>
+          <button
+            onClick={() => setSearchType("categories")}
+            className={`text-[11px] px-3 py-1.5 rounded-lg border transition-colors ${
+              searchType === "categories"
+                ? "border-primary/40 bg-primary/10 text-foreground font-medium"
+                : "border-border text-muted-foreground hover:border-primary/20 hover:bg-muted"
+            }`}
+          >
+            Categories
+          </button>
+        </div>
+
+        {/* Keyword input OR Category picker */}
+        {searchType === "keywords" ? (
+          <div className="flex gap-3">
+            <Textarea
+              placeholder="Enter keywords (one per line or comma-separated):&#10;calculator&#10;weather&#10;todo list"
+              value={keywords}
+              onChange={(e) => setKeywords(e.target.value)}
+              disabled={searching}
+              rows={3}
+              className="font-mono text-sm resize-none bg-input/50 border-border focus:border-primary/50 flex-1"
+            />
+            <div className="flex flex-col gap-2 shrink-0 w-48">
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                Min Ratings
+                <input
+                  type="number"
+                  value={filters.minRatingCount}
+                  onChange={(e) => setFilters((f) => ({ ...f, minRatingCount: Number(e.target.value) }))}
+                  disabled={searching}
+                  className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
+                />
+              </label>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                Min Days Since Update
+                <input
+                  type="number"
+                  value={filters.minDaysSinceUpdate}
+                  onChange={(e) => setFilters((f) => ({ ...f, minDaysSinceUpdate: Number(e.target.value) }))}
+                  disabled={searching}
+                  className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
+                />
+              </label>
+            </div>
+            <div className="flex flex-col gap-2 shrink-0 w-48">
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                Max Price ($)
+                <input
+                  type="number"
+                  step="0.99"
+                  value={filters.maxPrice}
+                  onChange={(e) => setFilters((f) => ({ ...f, maxPrice: Number(e.target.value) }))}
+                  disabled={searching}
+                  className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
+                />
+              </label>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                Min Avg Rating
+                <input
+                  type="number"
+                  step="0.1"
+                  value={filters.minAverageRating}
+                  onChange={(e) => setFilters((f) => ({ ...f, minAverageRating: Number(e.target.value) }))}
+                  disabled={searching}
+                  className="mt-1 w-full rounded-md border border-border bg-input/50 px-2.5 py-1.5 text-sm focus:border-primary/50 focus:outline-none"
+                />
+              </label>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {APP_STORE_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => toggleCategory(cat.id)}
+                  disabled={searching}
+                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                    selectedCategories.has(cat.id)
+                      ? "border-primary/40 bg-primary/10 text-foreground font-medium"
+                      : "border-border text-muted-foreground hover:border-primary/20 hover:bg-muted"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+            {selectedCategories.size > 0 && (
+              <p className="text-[11px] text-primary font-medium">
+                {selectedCategories.size} categor{selectedCategories.size !== 1 ? "ies" : "y"} selected — will browse top charts for each
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Suggested keywords (only for keyword mode) */}
+        {searchType === "keywords" && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-muted-foreground shrink-0">Suggested:</span>
+            {SUGGESTED_KEYWORDS.slice(0, 12).map((kw) => (
+              <button
+                key={kw}
+                onClick={() => addSuggested(kw)}
+                disabled={searching}
+                className="text-[11px] px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors disabled:opacity-50"
+              >
+                {kw}
+              </button>
+            ))}
+          </div>
+        )}
 
         {error && (
           <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
@@ -494,9 +594,9 @@ function SearchResults({
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium">Find abandoned apps to acquire</p>
+          <p className="text-sm font-medium">Find apps to acquire</p>
           <p className="text-xs text-muted-foreground/60 mt-1 max-w-xs">
-            Enter keywords like &quot;calculator&quot;, &quot;weather&quot;, or &quot;todo list&quot; and click Search to find apps with 50K+ downloads that haven&apos;t been updated in 18+ months
+            Search by keywords or browse App Store categories. Switch between Abandoned, New, Popular, and High Rated modes.
           </p>
         </div>
       </div>
@@ -507,7 +607,7 @@ function SearchResults({
     <div className="flex-1">
       <div className="px-6 py-3 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          Found <span className="text-foreground font-medium">{results.length}</span> abandoned app{results.length !== 1 ? "s" : ""}
+          Found <span className="text-foreground font-medium">{results.length}</span> app{results.length !== 1 ? "s" : ""}
         </p>
       </div>
       <div className="p-6 space-y-2.5">

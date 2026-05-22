@@ -117,3 +117,47 @@ export const SUGGESTED_KEYWORDS = [
   "tip calculator",
   "pomodoro timer",
 ] as const;
+
+// --- Discover modes & categories ---
+
+export type DiscoverMode = "abandoned" | "new" | "popular" | "high_rated";
+
+export const DISCOVER_MODES: { label: string; value: DiscoverMode; description: string }[] = [
+  { label: "Abandoned", value: "abandoned", description: "Not updated in 6+ months" },
+  { label: "New Releases", value: "new", description: "Released in the last 30 days" },
+  { label: "Popular", value: "popular", description: "Most downloads / ratings" },
+  { label: "High Rated", value: "high_rated", description: "4+ stars with many ratings" },
+];
+
+export interface AppStoreCategory {
+  id: number;
+  name: string;
+}
+
+export const APP_STORE_CATEGORIES: AppStoreCategory[] = [
+  { id: 6000, name: "Business" },
+  { id: 6014, name: "Education" },
+  { id: 6015, name: "Entertainment" },
+  { id: 6016, name: "Finance" },
+  { id: 6020, name: "Graphics & Design" },
+  { id: 6022, name: "Health & Fitness" },
+  { id: 6002, name: "Lifestyle" },
+  { id: 6024, name: "Medical" },
+  { id: 6017, name: "Music" },
+  { id: 6018, name: "News" },
+  { id: 6023, name: "Photo & Video" },
+  { id: 6004, name: "Productivity" },
+  { id: 6025, name: "Reference" },
+  { id: 6006, name: "Social Networking" },
+  { id: 6026, name: "Sports" },
+  { id: 6027, name: "Stickers" },
+  { id: 6007, name: "Travel" },
+  { id: 6012, name: "Utilities" },
+  { id: 6013, name: "Weather" },
+  { id: 6021, name: "Developer Tools" },
+  { id: 7003, name: "Food & Drink" },
+  { id: 7013, name: "Shopping" },
+  { id: 7008, name: "Kids" },
+  { id: 7017, name: "Magazines & Newspapers" },
+  { id: 7012, name: "Navigation" },
+];

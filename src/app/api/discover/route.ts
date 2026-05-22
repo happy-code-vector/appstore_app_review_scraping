@@ -12,47 +12,50 @@ export async function POST(request: NextRequest) {
   };
 
   const sortOption: SortOption = sort ?? "most_ratings";
-  const allApps = new Map<string, AcquisitionApp>();
+
+  // Separate cached vs uncached items
+  let items: { cacheKey: string; cached: AcquisitionApp[] | null; fetch: () => Promise<AcquisitionApp[]> }[];
 
   if (categoryIds && categoryIds.length > 0) {
-    // Per-category: check cache for each, fetch missing ones
-    for (const genreId of categoryIds) {
-      const cacheKey = makeCategoryKey(genreId, sortOption);
-      let apps = getCached<AcquisitionApp[]>(cacheKey);
-
-      if (!apps) {
-        apps = await discoverSingleCategory(genreId, sortOption);
-        setCache(cacheKey, apps);
-      }
-
-      for (const app of apps) {
-        if (!allApps.has(app.appId)) {
-          allApps.set(app.appId, app);
-        }
-      }
-    }
+    items = categoryIds.map((id) => {
+      const cacheKey = makeCategoryKey(id, sortOption);
+      const cached = getCached<AcquisitionApp[]>(cacheKey);
+      return { cacheKey, cached, fetch: () => discoverSingleCategory(id, sortOption) };
+    });
   } else if (keywords && keywords.length > 0) {
-    // Per-keyword: check cache for each, fetch missing ones
-    for (const keyword of keywords) {
-      const cacheKey = makeKeywordKey(keyword, sortOption);
-      let apps = getCached<AcquisitionApp[]>(cacheKey);
-
-      if (!apps) {
-        apps = await discoverSingleKeyword(keyword, sortOption);
-        setCache(cacheKey, apps);
-      }
-
-      for (const app of apps) {
-        if (!allApps.has(app.appId)) {
-          allApps.set(app.appId, app);
-        }
-      }
-    }
+    items = keywords.map((kw) => {
+      const cacheKey = makeKeywordKey(kw, sortOption);
+      const cached = getCached<AcquisitionApp[]>(cacheKey);
+      return { cacheKey, cached, fetch: () => discoverSingleKeyword(kw, sortOption) };
+    });
   } else {
     return NextResponse.json(
       { error: "Provide either keywords or categoryIds" },
       { status: 400 }
     );
+  }
+
+  // Fetch all uncached items in parallel
+  const uncached = items.filter((i) => !i.cached);
+  const results = await Promise.all(uncached.map((i) => i.fetch()));
+
+  // Cache newly fetched results and merge with cached ones
+  const allApps = new Map<string, AcquisitionApp>();
+
+  for (const item of items) {
+    let apps: AcquisitionApp[];
+    if (item.cached) {
+      apps = item.cached;
+    } else {
+      apps = results.shift() ?? [];
+      setCache(item.cacheKey, apps);
+    }
+
+    for (const app of apps) {
+      if (!allApps.has(app.appId)) {
+        allApps.set(app.appId, app);
+      }
+    }
   }
 
   return NextResponse.json({ apps: Array.from(allApps.values()), total: allApps.size });

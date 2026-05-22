@@ -1,6 +1,6 @@
-// In-memory cache with 24h TTL. Resets on server restart.
+// Per-category/keyword cache with 24h TTL. Resets on server restart.
 
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL = 24 * 60 * 60 * 1000;
 
 interface CacheEntry<T> {
   data: T;
@@ -20,15 +20,18 @@ export function getCached<T>(key: string): T | null {
 }
 
 export function setCache<T>(key: string, data: T): void {
-  store.delete(key); // reset position
   store.set(key, { data, expiry: Date.now() + CACHE_TTL });
 }
 
-export function makeCacheKey(params: Record<string, unknown>): string {
-  return JSON.stringify(params);
+export function makeCategoryKey(genreId: number, sort: string): string {
+  return `cat:${genreId}:${sort}`;
 }
 
-// Prune expired entries periodically (every hour)
+export function makeKeywordKey(keyword: string, sort: string): string {
+  return `kw:${keyword.toLowerCase().trim()}:${sort}`;
+}
+
+// Prune expired entries every hour
 if (typeof setInterval !== "undefined") {
   setInterval(() => {
     const now = Date.now();

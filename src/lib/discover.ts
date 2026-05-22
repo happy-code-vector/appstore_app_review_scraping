@@ -171,6 +171,67 @@ export async function discoverByCategory(
   return applySort(Array.from(allApps.values()), sort);
 }
 
+// Fetch results for a single category (used for per-category caching)
+export async function discoverSingleCategory(
+  genreId: number,
+  sort: SortOption
+): Promise<AcquisitionApp[]> {
+  const terms = CATEGORY_SEARCH_TERMS[genreId];
+  if (!terms) return [];
+
+  const allApps = new Map<string, AcquisitionApp>();
+
+  for (const term of terms) {
+    try {
+      const url = `${ITUNES_SEARCH}?term=${encodeURIComponent(term)}&entity=software&country=us&limit=200&genreId=${genreId}`;
+      const res = await fetch(url, { next: { revalidate: 0 } });
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const results: ITunesResult[] = data.results ?? [];
+
+      for (const r of results) {
+        const app = toAcquisitionApp(r, genreId);
+        if (app && !allApps.has(app.appId)) {
+          allApps.set(app.appId, app);
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return applySort(Array.from(allApps.values()), sort);
+}
+
+// Fetch results for a single keyword (used for per-keyword caching)
+export async function discoverSingleKeyword(
+  keyword: string,
+  sort: SortOption
+): Promise<AcquisitionApp[]> {
+  const allApps = new Map<string, AcquisitionApp>();
+
+  try {
+    const url = `${ITUNES_SEARCH}?term=${encodeURIComponent(keyword)}&entity=software&country=us&limit=200`;
+    const res = await fetch(url, { next: { revalidate: 0 } });
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const results: ITunesResult[] = data.results ?? [];
+
+    for (const r of results) {
+      const app = toAcquisitionApp(r);
+      if (app && !allApps.has(app.appId)) {
+        allApps.set(app.appId, app);
+      }
+    }
+  } catch {
+    // continue
+  }
+
+  return applySort(Array.from(allApps.values()), sort);
+}
+
 export async function discoverApps(
   keywords: string[],
   sort: SortOption

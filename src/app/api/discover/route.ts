@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { discoverApps, discoverByCategory } from "@/lib/discover";
-import { SortOption } from "@/lib/types";
-import { getCached, setCache, makeCacheKey } from "@/lib/cache";
+import { discoverSingleCategory, discoverSingleKeyword } from "@/lib/discover";
+import { AcquisitionApp, SortOption } from "@/lib/types";
+import { getCached, setCache, makeCategoryKey, makeKeywordKey } from "@/lib/cache";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -12,40 +12,48 @@ export async function POST(request: NextRequest) {
   };
 
   const sortOption: SortOption = sort ?? "most_ratings";
+  const allApps = new Map<string, AcquisitionApp>();
 
-  // Build cache key from search params
-  const cacheKey = makeCacheKey({
-    type: categoryIds?.length ? "category" : "keyword",
-    categoryIds: categoryIds?.sort(),
-    keywords: keywords?.map((k) => k.trim().toLowerCase()).sort(),
-    sort: sortOption,
-  });
+  if (categoryIds && categoryIds.length > 0) {
+    // Per-category: check cache for each, fetch missing ones
+    for (const genreId of categoryIds) {
+      const cacheKey = makeCategoryKey(genreId, sortOption);
+      let apps = getCached<AcquisitionApp[]>(cacheKey);
 
-  // Check cache first
-  const cached = getCached<{ apps: unknown[]; total: number }>(cacheKey);
-  if (cached) {
-    return NextResponse.json({ ...cached, cached: true });
-  }
+      if (!apps) {
+        apps = await discoverSingleCategory(genreId, sortOption);
+        setCache(cacheKey, apps);
+      }
 
-  try {
-    let apps;
-
-    if (categoryIds && categoryIds.length > 0) {
-      apps = await discoverByCategory(categoryIds, sortOption);
-    } else if (keywords && keywords.length > 0) {
-      apps = await discoverApps(keywords, sortOption);
-    } else {
-      return NextResponse.json(
-        { error: "Provide either keywords or categoryIds" },
-        { status: 400 }
-      );
+      for (const app of apps) {
+        if (!allApps.has(app.appId)) {
+          allApps.set(app.appId, app);
+        }
+      }
     }
+  } else if (keywords && keywords.length > 0) {
+    // Per-keyword: check cache for each, fetch missing ones
+    for (const keyword of keywords) {
+      const cacheKey = makeKeywordKey(keyword, sortOption);
+      let apps = getCached<AcquisitionApp[]>(cacheKey);
 
-    const result = { apps, total: apps.length };
-    setCache(cacheKey, result);
+      if (!apps) {
+        apps = await discoverSingleKeyword(keyword, sortOption);
+        setCache(cacheKey, apps);
+      }
 
-    return NextResponse.json(result);
-  } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+      for (const app of apps) {
+        if (!allApps.has(app.appId)) {
+          allApps.set(app.appId, app);
+        }
+      }
+    }
+  } else {
+    return NextResponse.json(
+      { error: "Provide either keywords or categoryIds" },
+      { status: 400 }
+    );
   }
+
+  return NextResponse.json({ apps: Array.from(allApps.values()), total: allApps.size });
 }

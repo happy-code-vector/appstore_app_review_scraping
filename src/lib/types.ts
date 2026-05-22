@@ -156,5 +156,4 @@ export const APP_STORE_CATEGORIES: AppStoreCategory[] = [
   { id: 6026, name: "Developer Tools" },
   { id: 6021, name: "Graphics & Design" },
   { id: 7008, name: "Kids" },
-  { id: 6002, name: "Lifestyle" },
 ];

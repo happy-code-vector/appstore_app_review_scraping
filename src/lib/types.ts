@@ -120,19 +120,12 @@ export const SUGGESTED_KEYWORDS = [
 
 // --- Discover modes, sort options & categories ---
 
-export type DiscoverMode = "abandoned" | "recently_abandoned";
-
-export const DISCOVER_MODES: { label: string; value: DiscoverMode; description: string }[] = [
-  { label: "Abandoned", value: "abandoned", description: "Not updated in 6+ months — dev moved on" },
-  { label: "Recently Abandoned", value: "recently_abandoned", description: "Stopped updating in last 3-6 months, still has active users" },
-];
-
-export type SortOption = "most_ratings" | "highest_rated" | "longest_abandoned";
+export type SortOption = "most_ratings" | "highest_rated" | "longest_neglected";
 
 export const SORT_OPTIONS: { label: string; value: SortOption }[] = [
   { label: "Most Ratings", value: "most_ratings" },
   { label: "Highest Rated", value: "highest_rated" },
-  { label: "Longest Abandoned", value: "longest_abandoned" },
+  { label: "Longest Neglected", value: "longest_neglected" },
 ];
 
 export interface AppStoreCategory {

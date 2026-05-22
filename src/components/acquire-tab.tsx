@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AcquisitionApp,
-  DiscoverMode,
   SortOption,
   OutreachStatus,
   OUTREACH_STATUSES,
   SUGGESTED_KEYWORDS,
-  DISCOVER_MODES,
   SORT_OPTIONS,
   APP_STORE_CATEGORIES,
 } from "@/lib/types";
@@ -66,7 +64,6 @@ function StatusBadge({ status }: { status: OutreachStatus }) {
 
 export function AcquireTab() {
   const [keywords, setKeywords] = useState("");
-  const [mode, setMode] = useState<DiscoverMode>("abandoned");
   const [sort, setSort] = useState<SortOption>("most_ratings");
   const [searchType, setSearchType] = useState<"categories" | "keywords">("categories");
   const [selectedCategories, setSelectedCategories] = useState<Set<number>>(new Set());
@@ -98,7 +95,7 @@ export function AcquireTab() {
     setSelectedApp(null);
     setView("search");
 
-    const body: Record<string, unknown> = { mode, sort };
+    const body: Record<string, unknown> = { sort };
 
     if (searchType === "keywords") {
       const kws = keywords
@@ -141,7 +138,7 @@ export function AcquireTab() {
     } finally {
       setSearching(false);
     }
-  }, [keywords, mode, sort, searchType, selectedCategories]);
+  }, [keywords, sort, searchType, selectedCategories]);
 
   const saveToPipeline = (app: AcquisitionApp) => {
     if (pipeline.some((a) => a.appId === app.appId)) return;
@@ -250,7 +247,7 @@ export function AcquireTab() {
             <div>
               <h1 className="text-base font-semibold tracking-tight">App Acquisition Finder</h1>
               <p className="text-[11px] text-muted-foreground">
-                Find neglected apps from small devs who moved on
+                Small developer apps not updated in 3+ months — big brands excluded
               </p>
             </div>
           </div>
@@ -269,24 +266,6 @@ export function AcquireTab() {
               </Button>
             )}
           </div>
-        </div>
-
-        {/* Mode selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider shrink-0">Find:</span>
-          {DISCOVER_MODES.map((m) => (
-            <button
-              key={m.value}
-              onClick={() => setMode(m.value)}
-              className={`text-[11px] px-3 py-1.5 rounded-lg border transition-colors ${
-                mode === m.value
-                  ? "border-primary/40 bg-primary/10 text-foreground font-medium"
-                  : "border-border text-muted-foreground hover:border-primary/20 hover:bg-muted"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
         </div>
 
         {/* Sort options */}
@@ -562,9 +541,9 @@ function SearchResults({
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium">Find apps to acquire</p>
+          <p className="text-sm font-medium">Find neglected apps to acquire</p>
           <p className="text-xs text-muted-foreground/60 mt-1 max-w-xs">
-            Search by keywords or browse App Store categories. Switch between Abandoned, New, Popular, and High Rated modes.
+            Browse categories or search by keyword. Results are filtered to small developers who haven&apos;t updated their app in 3+ months. Big brands are excluded.
           </p>
         </div>
       </div>

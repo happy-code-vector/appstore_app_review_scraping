@@ -1,9 +1,38 @@
-import { AcquisitionApp, DiscoverFilters, DiscoverMode, SortOption } from "./types";
+import { AcquisitionApp, SortOption } from "./types";
 
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP = "https://itunes.apple.com/lookup";
 const RSS_TOP_FREE = "https://itunes.apple.com/rss/topfreeapplications/limit=200/genre=";
 const RSS_TOP_PAID = "https://itunes.apple.com/rss/toppaidapplications/limit=200/genre=";
+
+// Well-known brands to exclude — we want small devs only
+const BLOCKED_SELLERS = new Set([
+  "google llc", "apple inc.", "microsoft corporation", "meta platforms, inc.",
+  "amazon.com", "amazon mobile llc", "spotify ab", "spotify", "netflix, inc.",
+  "snap, inc.", "twitter, inc.", "x corp.", "whatsapp inc.", "meta",
+  "adobe inc.", "zoom video communications, inc.", "dropbox, inc.",
+  "uber technologies, inc.", "lyft, inc.", "airbnb, inc.",
+  "samsung electronics co., ltd.", "huawei device co., ltd.",
+  "linkedin corporation", "pinterest", "tiktok ltd.", "bytedance ltd.",
+  "discord, inc.", "telegram messenger inc.", "signal foundation",
+  "openai, llc", "openai", "anthropic", "square, inc.", "block, inc.",
+  "paypal, inc.", "venmo", "coinbase, inc.", "robinhood",
+  "intel corporation", "nvidia corporation", "cisco systems, inc.",
+  "oracle corporation", "ibm corporation", "salesforce, inc.",
+  "atlassian", "slack technologies, inc.", "shopify inc.",
+  "walmart", "target corporation", "the home depot",
+  "disney electronic content, inc.", "warnermedia", "paramount global",
+  "comcast", "verizon", "at&t services, inc.", "t-mobile",
+  "peloton interactive, inc.", "strava, inc.", "yelp, inc.",
+  "ziprecruiter, inc.", "indeed", "match group, llc",
+  "ea swiss sarl", "electronic arts", "activision publishing, inc.",
+  "king.com limited", "supercell oy", "niantic, inc.",
+  "nintendo co., ltd.", "sega", "bandai namco",
+  "tiktok pte. ltd.", "musical.ly inc.",
+  "shein", "temu", "alibaba",
+  "alipay", "wechat", "tencent",
+  "skype communications s.a.r.l", "viber media s.à r.l.",
+]);
 
 interface ITunesResult {
   trackId: number;
@@ -26,11 +55,23 @@ interface ITunesResult {
   primaryGenreId?: number;
 }
 
-function toAcquisitionApp(r: ITunesResult): AcquisitionApp {
+function toAcquisitionApp(r: ITunesResult): AcquisitionApp | null {
+  const seller = (r.sellerName ?? r.artistName ?? "").toLowerCase();
+  // Skip big brands
+  if (BLOCKED_SELLERS.has(seller)) return null;
+  // Skip if seller name contains a well-known brand substring
+  for (const brand of ["google", "apple", "microsoft", "meta platform", "spotify", "netflix", "openai", "tiktok", "bytedance", "tencent", "alibaba"]) {
+    if (seller.includes(brand)) return null;
+  }
+
   const lastUpdated = r.currentVersionReleaseDate ?? r.releaseDate ?? "";
   const daysSinceUpdate = lastUpdated
     ? Math.floor((Date.now() - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24))
     : 9999;
+
+  // Skip apps updated within the last 3 months
+  if (daysSinceUpdate < 90) return null;
+
   const price = r.price ?? 0;
 
   return {
@@ -53,32 +94,19 @@ function toAcquisitionApp(r: ITunesResult): AcquisitionApp {
   };
 }
 
-function applyModeFilter(apps: AcquisitionApp[], mode: DiscoverMode): AcquisitionApp[] {
-  switch (mode) {
-    case "abandoned":
-      return apps.filter((a) => a.daysSinceUpdate >= 180);
-    case "recently_abandoned":
-      // Stopped updating 3-6 months ago — was active, now neglected
-      return apps.filter((a) => a.daysSinceUpdate >= 90 && a.daysSinceUpdate <= 180);
-    default:
-      return apps;
-  }
-}
-
 function applySort(apps: AcquisitionApp[], sort: SortOption): AcquisitionApp[] {
   switch (sort) {
     case "most_ratings":
       return apps.sort((a, b) => b.ratingCount - a.ratingCount);
     case "highest_rated":
       return apps.sort((a, b) => b.averageRating - a.averageRating || b.ratingCount - a.ratingCount);
-    case "longest_abandoned":
+    case "longest_neglected":
       return apps.sort((a, b) => b.daysSinceUpdate - a.daysSinceUpdate);
     default:
       return apps;
   }
 }
 
-// Fetch app IDs from RSS top charts for a category
 async function fetchTopChartIds(genreId: number): Promise<string[]> {
   const ids = new Set<string>();
 
@@ -100,7 +128,6 @@ async function fetchTopChartIds(genreId: number): Promise<string[]> {
   return Array.from(ids);
 }
 
-// Lookup multiple apps by IDs (batch of up to 100)
 async function lookupApps(ids: string[]): Promise<AcquisitionApp[]> {
   if (ids.length === 0) return [];
 
@@ -115,7 +142,8 @@ async function lookupApps(ids: string[]): Promise<AcquisitionApp[]> {
       const data = await res.json();
       const results: ITunesResult[] = data.results ?? [];
       for (const r of results) {
-        apps.push(toAcquisitionApp(r));
+        const app = toAcquisitionApp(r);
+        if (app) apps.push(app);
       }
     } catch {
       continue;
@@ -125,10 +153,8 @@ async function lookupApps(ids: string[]): Promise<AcquisitionApp[]> {
   return apps;
 }
 
-// Discover by browsing categories via RSS top charts
 export async function discoverByCategory(
   genreIds: number[],
-  mode: DiscoverMode,
   sort: SortOption
 ): Promise<AcquisitionApp[]> {
   const allApps = new Map<string, AcquisitionApp>();
@@ -144,17 +170,11 @@ export async function discoverByCategory(
     }
   }
 
-  let result = Array.from(allApps.values());
-  result = applyModeFilter(result, mode);
-  result = applySort(result, sort);
-
-  return result;
+  return applySort(Array.from(allApps.values()), sort);
 }
 
-// Discover by keyword search
 export async function discoverApps(
   keywords: string[],
-  mode: DiscoverMode,
   sort: SortOption
 ): Promise<AcquisitionApp[]> {
   const allApps = new Map<string, AcquisitionApp>();
@@ -169,18 +189,15 @@ export async function discoverApps(
       const results: ITunesResult[] = data.results ?? [];
 
       for (const r of results) {
-        const appId = String(r.trackId);
-        if (allApps.has(appId)) continue;
-        allApps.set(appId, toAcquisitionApp(r));
+        const app = toAcquisitionApp(r);
+        if (app && !allApps.has(app.appId)) {
+          allApps.set(app.appId, app);
+        }
       }
     } catch {
       continue;
     }
   }
 
-  let result = Array.from(allApps.values());
-  result = applyModeFilter(result, mode);
-  result = applySort(result, sort);
-
-  return result;
+  return applySort(Array.from(allApps.values()), sort);
 }

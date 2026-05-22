@@ -118,15 +118,21 @@ export const SUGGESTED_KEYWORDS = [
   "pomodoro timer",
 ] as const;
 
-// --- Discover modes & categories ---
+// --- Discover modes, sort options & categories ---
 
-export type DiscoverMode = "abandoned" | "new" | "popular" | "high_rated";
+export type DiscoverMode = "abandoned" | "recently_abandoned";
 
 export const DISCOVER_MODES: { label: string; value: DiscoverMode; description: string }[] = [
-  { label: "Abandoned", value: "abandoned", description: "Not updated in 6+ months" },
-  { label: "New Releases", value: "new", description: "Released in the last 30 days" },
-  { label: "Popular", value: "popular", description: "Most downloads / ratings" },
-  { label: "High Rated", value: "high_rated", description: "4+ stars with many ratings" },
+  { label: "Abandoned", value: "abandoned", description: "Not updated in 6+ months — dev moved on" },
+  { label: "Recently Abandoned", value: "recently_abandoned", description: "Stopped updating in last 3-6 months, still has active users" },
+];
+
+export type SortOption = "most_ratings" | "highest_rated" | "longest_abandoned";
+
+export const SORT_OPTIONS: { label: string; value: SortOption }[] = [
+  { label: "Most Ratings", value: "most_ratings" },
+  { label: "Highest Rated", value: "highest_rated" },
+  { label: "Longest Abandoned", value: "longest_abandoned" },
 ];
 
 export interface AppStoreCategory {

@@ -1,4 +1,4 @@
-import { AcquisitionApp, DiscoverFilters, DiscoverMode } from "./types";
+import { AcquisitionApp, DiscoverFilters, DiscoverMode, SortOption } from "./types";
 
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP = "https://itunes.apple.com/lookup";
@@ -54,34 +54,28 @@ function toAcquisitionApp(r: ITunesResult): AcquisitionApp {
 }
 
 function applyModeFilter(apps: AcquisitionApp[], mode: DiscoverMode): AcquisitionApp[] {
-  const now = Date.now();
-  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-
   switch (mode) {
     case "abandoned":
       return apps.filter((a) => a.daysSinceUpdate >= 180);
-    case "new":
-      return apps.filter((a) => {
-        if (!a.lastUpdated) return false;
-        return now - new Date(a.lastUpdated).getTime() <= thirtyDays;
-      });
-    case "popular":
-      return apps.filter((a) => a.ratingCount >= 10000).sort((a, b) => b.ratingCount - a.ratingCount);
-    case "high_rated":
-      return apps.filter((a) => a.averageRating >= 4.0 && a.ratingCount >= 500).sort((a, b) => b.averageRating - a.averageRating);
+    case "recently_abandoned":
+      // Stopped updating 3-6 months ago — was active, now neglected
+      return apps.filter((a) => a.daysSinceUpdate >= 90 && a.daysSinceUpdate <= 180);
     default:
       return apps;
   }
 }
 
-function applyFilters(apps: AcquisitionApp[], filters: DiscoverFilters): AcquisitionApp[] {
-  return apps.filter((a) => {
-    if (a.ratingCount < filters.minRatingCount) return false;
-    if (a.daysSinceUpdate < filters.minDaysSinceUpdate) return false;
-    if (a.price > filters.maxPrice) return false;
-    if (a.averageRating < filters.minAverageRating) return false;
-    return true;
-  });
+function applySort(apps: AcquisitionApp[], sort: SortOption): AcquisitionApp[] {
+  switch (sort) {
+    case "most_ratings":
+      return apps.sort((a, b) => b.ratingCount - a.ratingCount);
+    case "highest_rated":
+      return apps.sort((a, b) => b.averageRating - a.averageRating || b.ratingCount - a.ratingCount);
+    case "longest_abandoned":
+      return apps.sort((a, b) => b.daysSinceUpdate - a.daysSinceUpdate);
+    default:
+      return apps;
+  }
 }
 
 // Fetch app IDs from RSS top charts for a category
@@ -111,7 +105,6 @@ async function lookupApps(ids: string[]): Promise<AcquisitionApp[]> {
   if (ids.length === 0) return [];
 
   const apps: AcquisitionApp[] = [];
-  // iTunes lookup allows up to ~100 IDs per request
   for (let i = 0; i < ids.length; i += 100) {
     const batch = ids.slice(i, i + 100);
     try {
@@ -136,7 +129,7 @@ async function lookupApps(ids: string[]): Promise<AcquisitionApp[]> {
 export async function discoverByCategory(
   genreIds: number[],
   mode: DiscoverMode,
-  filters: DiscoverFilters
+  sort: SortOption
 ): Promise<AcquisitionApp[]> {
   const allApps = new Map<string, AcquisitionApp>();
 
@@ -152,24 +145,17 @@ export async function discoverByCategory(
   }
 
   let result = Array.from(allApps.values());
+  result = applyModeFilter(result, mode);
+  result = applySort(result, sort);
 
-  // For keyword search mode, apply filters first, then mode
-  // For category browsing, apply mode first, then filters
-  if (mode !== "abandoned") {
-    // Only apply filters that make sense for the mode
-    result = applyModeFilter(result, mode);
-  } else {
-    result = applyModeFilter(result, mode);
-  }
-
-  return result.sort((a, b) => b.ratingCount - a.ratingCount);
+  return result;
 }
 
-// Discover by keyword search (existing logic, enhanced with modes)
+// Discover by keyword search
 export async function discoverApps(
   keywords: string[],
-  filters: DiscoverFilters,
-  mode: DiscoverMode = "abandoned"
+  mode: DiscoverMode,
+  sort: SortOption
 ): Promise<AcquisitionApp[]> {
   const allApps = new Map<string, AcquisitionApp>();
 
@@ -194,6 +180,7 @@ export async function discoverApps(
 
   let result = Array.from(allApps.values());
   result = applyModeFilter(result, mode);
+  result = applySort(result, sort);
 
-  return result.sort((a, b) => b.ratingCount - a.ratingCount);
+  return result;
 }
